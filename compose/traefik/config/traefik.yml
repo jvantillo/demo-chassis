@@ -1,0 +1,30 @@
+entrypoints:
+  http:
+    address: ':80'
+  metrics:
+    address: ':8089'
+
+providers:
+  # consul:
+  #   endpoints:
+  #     - consul-8500.service.consul:8500
+  #   rootkey: traefik
+
+  # Falling back to docker since registrator cannot automatically fill the Consul K/V store :(
+  docker: {}
+
+api:
+  dashboard: true
+  insecure: true
+
+log:
+  level: DEBUG
+
+metrics:
+  prometheus:
+    entrypoint: metrics
+
+tracing:
+  jaeger:
+    samplingServerURL: http://jaeger-agent-5778.service.consul:5778/sampling
+    localAgentHostPort: jaeger-agent-6831.service.consul:6831

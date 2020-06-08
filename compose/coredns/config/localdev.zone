@@ -1,0 +1,10 @@
+@  3600  IN  SOA  ns1.localdev.  ns1.localdev.  (
+   2019041900
+   3600
+   600
+   604800
+   600 )
+   3600  IN  NS  ns1.localdev.
+
+ns1      IN  A  172.30.30.30
+*        IN  A  127.0.0.1

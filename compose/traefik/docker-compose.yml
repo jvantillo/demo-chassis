@@ -1,0 +1,22 @@
+version: '3.7'
+
+services:
+  reverse-proxy:
+    image: traefik:v2.2
+    ports:
+      - "80:80"         # Main HTTP port
+      - "8080:8080"     # Web UI (api.insecure)
+      - "8089:8089"   # Metrics endpoint
+    volumes:
+      - ./config/:/etc/traefik/
+      # So that Traefik can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - chassis
+    dns: 172.30.30.30      # Because we'll be accessing consul-located services
+    labels:
+      SERVICE_8089_TAGS: traefikmetrics
+
+networks:
+  chassis:
+    external: true

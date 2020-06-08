@@ -1,0 +1,38 @@
+version : '3.7'
+
+services:
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    restart: always
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - chassis
+    dns: 172.30.30.30
+    labels:
+      traefik.enable: false
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      #- grafana_data:/var/lib/grafana
+      - ./grafana/provisioning/:/etc/grafana/provisioning/
+    restart: always
+    ports:
+      - 22101:3000
+    networks:
+      - chassis
+    dns: 172.30.30.30
+    labels:
+      traefik.enable: false
+
+networks:
+  chassis:
+    external: true

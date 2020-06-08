@@ -1,0 +1,24 @@
+version : '3.7'
+
+services:
+  coredns:
+    build: .
+    container_name: coredns
+    restart: always
+    ports:
+      - '53:53'
+      - '53:53/udp'
+    volumes:
+      - './config:/etc/coredns'
+    networks:
+      chassis:
+        ipv4_address: 172.30.30.30
+    labels:
+      traefik.enable: false
+
+networks:
+  chassis:
+    name: chassis
+    ipam:
+      config:
+        - subnet: 172.30.0.0/16

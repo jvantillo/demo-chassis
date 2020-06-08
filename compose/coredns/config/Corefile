@@ -1,0 +1,16 @@
+. {
+    log
+    errors
+    cache  10
+
+    file /etc/coredns/localdev.zone localdev
+    forward . /etc/resolv.conf {
+        except consul
+    }
+}
+
+consul {
+  log
+  errors
+  forward . 172.30.30.31:8600
+}

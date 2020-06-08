@@ -1,0 +1,16 @@
+version: '3.7'
+
+services:
+    jaeger-dag:
+      image: jaegertracing/spark-dependencies
+      environment:
+        STORAGE: elasticsearch
+        ES_NODES: http://elasticsearch:9200
+      networks:
+        - chassis
+      labels:
+        traefik.enable: false
+
+networks:
+  chassis:
+    external: true
