@@ -11,8 +11,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JP.Demo.Chassis.Transaction
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libs", "libs", "{C648B320-1ADD-473F-AE28-BFCDB7747015}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "schemas", "schemas", "{E58426A7-7BA2-471F-BD4A-4E0E237FF6C9}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "services", "services", "{87307154-657E-47BC-947C-A1F09FBDAC10}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JP.Demo.Chassis.SharedCode", "src\JP.Demo.Chassis.SharedCode\JP.Demo.Chassis.SharedCode.csproj", "{198880D8-E1CC-4438-9D5C-269068CFFFD1}"

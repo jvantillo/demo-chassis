@@ -7,10 +7,12 @@ using Confluent.Kafka;
 using Confluent.Kafka.SyncOverAsync;
 using Confluent.SchemaRegistry.Serdes;
 using JP.Demo.Chassis.SharedCode.Kafka;
+using JP.Demo.Chassis.SharedCode.Kafka.Tracing;
 using JP.Demo.Chassis.SharedCode.Schemas;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using OpenTracing;
 
 namespace JP.Demo.Chassis.TransactionApi
 {
@@ -19,15 +21,21 @@ namespace JP.Demo.Chassis.TransactionApi
         private readonly ILogger<KafkaReplyWorker> logger;
         private readonly KafkaRequestReplyGroup replyGroup;
         private readonly RequestReplyImplementation reqRep;
+        private readonly ITracer tracer;
         private readonly KafkaConfig kafkaOptions;
         private readonly string myUniqueConsumerGroup;
         private static readonly Random rand = new Random();
 
-        public KafkaReplyWorker(ILogger<KafkaReplyWorker> logger, IOptions<KafkaConfig> kafkaOptions, KafkaRequestReplyGroup replyGroup, RequestReplyImplementation reqRep)
+        public KafkaReplyWorker(ILogger<KafkaReplyWorker> logger,
+            IOptions<KafkaConfig> kafkaOptions,
+            KafkaRequestReplyGroup replyGroup,
+            RequestReplyImplementation reqRep,
+            ITracer tracer)
         {
             this.logger = logger;
             this.replyGroup = replyGroup;
             this.reqRep = reqRep;
+            this.tracer = tracer;
             this.kafkaOptions = kafkaOptions.Value;
 
             // Assign a unique consumer group name
@@ -88,6 +96,11 @@ namespace JP.Demo.Chassis.TransactionApi
                     try
                     {
                         var cr = c.Consume(stoppingToken);
+
+                        // Set up our distributed trace
+                        var spanBuilder = KafkaTracingHelper.ObtainConsumerSpanBuilder(tracer, cr.Message.Headers, "Process TransactionReply");
+                        using var s = spanBuilder.StartActive(true);
+
                         var groupIdHeader = cr.Message.Headers.SingleOrDefault(p => p.Key == "reply-group-id");
                         if (groupIdHeader == null || replyGroup.MyUniqueConsumerGroup != Encoding.ASCII.GetString(groupIdHeader.GetValueBytes()))
                         {

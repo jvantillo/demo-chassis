@@ -27,4 +27,4 @@ Script for demo
 * Update code
 * Run container
 * Show traefik
-* Show Kafka dashboard with abaility to select the new API
+* Show Kafka dashboard with ability to select the new API

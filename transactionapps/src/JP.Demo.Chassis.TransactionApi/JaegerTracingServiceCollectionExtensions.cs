@@ -2,41 +2,14 @@
 using Jaeger;
 using Jaeger.Reporters;
 using Jaeger.Samplers;
-using JP.Demo.Chassis.SharedCode.Kafka;
-using JP.Demo.Chassis.SharedCode.Schemas;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OpenTracing;
 using OpenTracing.Util;
 
-namespace JP.Demo.Chassis.TransactionService
+namespace JP.Demo.Chassis.TransactionApi
 {
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
-            CreateHostBuilder(args).Build().Run();
-        }
-
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureServices((hostContext, services) =>
-                {
-                    var config = hostContext.Configuration;
-                    services.AddJaegerTracing(options => {
-                        options.JaegerAgentHost = config["JAEGER_AGENT_HOST"];
-                        options.ServiceName = config["GLOBAL_NAME"];
-                    });
-
-                    services.Configure<KafkaConfig>(hostContext.Configuration.GetSection("KafkaConfig"));
-                    services.AddSingleton<KafkaSender<TransactionCreated>>();
-                    services.AddSingleton<KafkaSender<TransactionReply>>();
-                    services.AddHostedService<ConsumerWorker>();
-                });
-    }
-
     public static class JaegerTracingServiceCollectionExtensions
     {
         // Jaeger for .NET Core sources:
@@ -52,10 +25,16 @@ namespace JP.Demo.Chassis.TransactionService
                 services.ConfigureJaegerTracing(setupAction);
             }
 
-            // Configure Open Tracing with non-default behavior, skipping ASP.Net and Entity Framework
-            services.AddOpenTracingCoreServices(builder =>
-                builder.AddCoreFx()
-                    .AddLoggerProvider());
+            // Configure Open Tracing with default behavior for .NET
+            services.AddOpenTracing(builder =>
+            {
+                builder.ConfigureAspNetCore(options =>
+                {
+                    // Exclude noise
+                    options.Hosting.IgnorePatterns.Add(x => x.Request.Path == "/health");
+                    options.Hosting.IgnorePatterns.Add(x => x.Request.Path == "/metrics");
+                });
+            });
 
             services.AddSingleton<ITracer>(serviceProvider =>
             {
@@ -98,23 +77,6 @@ namespace JP.Demo.Chassis.TransactionService
         public static void ConfigureJaegerTracing(this IServiceCollection services, Action<JaegerTracingOptions> setupAction)
         {
             services.Configure(setupAction);
-        }
-    }
-
-    public class JaegerTracingOptions
-    {
-        public double SamplingRate { get; set; }
-        public double LowerBound { get; set; }
-        public string JaegerAgentHost { get; set; }
-        public int JaegerAgentPort { get; set; }
-        public string ServiceName { get; set; }
-
-        public JaegerTracingOptions()
-        {
-            SamplingRate = 1d;
-            LowerBound = 1d;
-            JaegerAgentHost = "i-do-not-exist";
-            JaegerAgentPort = 6831;
         }
     }
 }

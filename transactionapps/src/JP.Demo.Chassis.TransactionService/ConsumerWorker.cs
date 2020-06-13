@@ -7,10 +7,12 @@ using Confluent.Kafka;
 using Confluent.Kafka.SyncOverAsync;
 using Confluent.SchemaRegistry.Serdes;
 using JP.Demo.Chassis.SharedCode.Kafka;
+using JP.Demo.Chassis.SharedCode.Kafka.Tracing;
 using JP.Demo.Chassis.SharedCode.Schemas;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using OpenTracing;
 
 namespace JP.Demo.Chassis.TransactionService
 {
@@ -19,15 +21,18 @@ namespace JP.Demo.Chassis.TransactionService
         private readonly ILogger<ConsumerWorker> logger;
         private readonly KafkaSender<TransactionReply> replySender;
         private readonly KafkaSender<TransactionCreated> createdSender;
+        private readonly ITracer tracer;
         private readonly KafkaConfig kafkaOptions;
 
         public ConsumerWorker(ILogger<ConsumerWorker> logger, IOptions<KafkaConfig> kafkaOptions,
-            KafkaSender<TransactionReply> replySender, KafkaSender<TransactionCreated> createdSender)
+            KafkaSender<TransactionReply> replySender, KafkaSender<TransactionCreated> createdSender,
+            ITracer tracer)
         {
             this.kafkaOptions = kafkaOptions.Value;
             this.logger = logger;
             this.replySender = replySender;
             this.createdSender = createdSender;
+            this.tracer = tracer;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -77,6 +82,11 @@ namespace JP.Demo.Chassis.TransactionService
                     try
                     {
                         var cr = c.Consume(stoppingToken);
+
+                        // Set up our distributed trace
+                        var spanBuilder = KafkaTracingHelper.ObtainConsumerSpanBuilder(tracer, cr.Message.Headers, "Process TransactionRequest");
+                        using var s = spanBuilder.StartActive(true);
+
                         var rq = cr.Message.Value;
                         logger.LogInformation($"Consumed message '{rq}' (amount: {rq.Amount}) at: '{cr.TopicPartitionOffset}'.");
 

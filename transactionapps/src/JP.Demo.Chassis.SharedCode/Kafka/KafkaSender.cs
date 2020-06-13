@@ -5,8 +5,11 @@ using System.Threading.Tasks;
 using Confluent.Kafka;
 using Confluent.SchemaRegistry;
 using Confluent.SchemaRegistry.Serdes;
+using JP.Demo.Chassis.SharedCode.Kafka.Tracing;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using OpenTracing;
+using OpenTracing.Propagation;
 
 namespace JP.Demo.Chassis.SharedCode.Kafka
 {
@@ -15,15 +18,17 @@ namespace JP.Demo.Chassis.SharedCode.Kafka
         where T : class, new()
     {
         private readonly ILogger logger;
+        private readonly ITracer tracer;
         private readonly KafkaConfig kafkaOptions;
 
         private IProducer<Null, T> producer;
         private ISchemaRegistryClient schemaRegistryClient;
         private readonly object myLock = new object();
 
-        public KafkaSender(ILogger<KafkaSender<T>> logger, IOptions<KafkaConfig> kafkaOptions)
+        public KafkaSender(ILogger<KafkaSender<T>> logger, IOptions<KafkaConfig> kafkaOptions, ITracer tracer)
         {
             this.logger = logger;
+            this.tracer = tracer;
             this.kafkaOptions = kafkaOptions.Value;
         }
 
@@ -66,6 +71,8 @@ namespace JP.Demo.Chassis.SharedCode.Kafka
 
         public async Task<bool> SendToBusWithoutRetries(T rq, string target, List<Tuple<string, byte[]>> headers = null)
         {
+            var builder = tracer.BuildSpan("Send message to Kafka");
+            using var s = builder.StartActive(true);
             SetupProducer();
 
             try
@@ -79,6 +86,12 @@ namespace JP.Demo.Chassis.SharedCode.Kafka
                         newMessage.Headers.Add(tuple.Item1, tuple.Item2);
                     }
                 }
+
+                // Propagate our tracing information
+                IDictionary<string, string> dict = new Dictionary<string, string>();
+                tracer.Inject(tracer.ActiveSpan.Context, BuiltinFormats.TextMap, new TextMapInjectAdapter(dict));
+                var contextForKafka = KafkaTracingContextHelper.Encode(dict);
+                newMessage.Headers.Add("tracing-id", contextForKafka);
 
                 var deliverTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(2));
                 var deliveryResult = await producer.ProduceAsync(target, newMessage, deliverTokenSource.Token);

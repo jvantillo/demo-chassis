@@ -20,7 +20,7 @@ services:
       KafkaConfig__BootstrapServerUri: cp-server.service.consul:29092
       KafkaConfig__SchemaRegistryUri: http://cp-schema-registry.service.consul:8081
 
-      # These are invironmental options that can be generated
+      # These are environmental options that can be generated
       JAEGER_AGENT_HOST: jaeger-agent-6831.service.consul     # Our tracing host.
 
       ASPNETCORE_ENVIRONMENT: Development
@@ -47,6 +47,9 @@ services:
 
       KafkaConfig__BootstrapServerUri: cp-server.service.consul:29092
       KafkaConfig__SchemaRegistryUri: http://cp-schema-registry.service.consul:8081
+
+      # These are environmental options that can be generated
+      JAEGER_AGENT_HOST: jaeger-agent-6831.service.consul     # Our tracing host.
 
   
   

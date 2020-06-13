@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using JP.Demo.Chassis.SharedCode.Kafka;
 using JP.Demo.Chassis.SharedCode.Schemas;
 using Microsoft.Extensions.Logging;
+using OpenTracing;
 
 namespace JP.Demo.Chassis.TransactionApi
 {
@@ -15,15 +16,18 @@ namespace JP.Demo.Chassis.TransactionApi
         private readonly KafkaSender<TransactionRequest> sender;
         private readonly ILogger<RequestReplyImplementation> logger;
         private readonly KafkaRequestReplyGroup replyGroup;
+        private readonly ITracer tracer;
         private readonly ConcurrentDictionary<string, TransactionReply> pendingRequests;
 
         public RequestReplyImplementation(KafkaSender<TransactionRequest> sender,
             ILogger<RequestReplyImplementation> logger,
-            KafkaRequestReplyGroup replyGroup)
+            KafkaRequestReplyGroup replyGroup,
+            ITracer tracer)
         {
             this.sender = sender;
             this.logger = logger;
             this.replyGroup = replyGroup;
+            this.tracer = tracer;
 
             // Note: we could leak memory over time here. Not a problem for this demo
             pendingRequests = new ConcurrentDictionary<string, TransactionReply>();
@@ -41,14 +45,13 @@ namespace JP.Demo.Chassis.TransactionApi
 
             // Note: you can carry over information in headers like this. An example would be to put the reply topic in a header,
             // so that you can let consumers know where to expect back the reply. Or add the correlation IDs in the headers.
-            // For example, this would be the place where you want to think of distributed tracing. In this example, we could carry over
-            // our Jaeger correlation ID.
+            // For example, this would be the place where you want to think of distributed tracing. In this example, we will carry over
+            // our Jaeger correlation ID, so that consumers can be part of the vary same trace.
 
-            // Specifically, we are going to carry over our reply group ID, which the consumer must communicate back to use
-            var rqHeaders = new List<Tuple<string, byte[]>>
-            {
-                new Tuple<string, byte[]>("reply-group-id", Encoding.ASCII.GetBytes(replyGroup.MyUniqueConsumerGroup))
-            };
+            // Specifically, we are going to carry over our reply group ID, which the consumer must communicate back to use.
+            // Our Tracing identifiers are taken care of in the KafkaSender class.
+
+            var rqHeaders = new List<Tuple<string, byte[]>> {new Tuple<string, byte[]>("reply-group-id", Encoding.ASCII.GetBytes(replyGroup.MyUniqueConsumerGroup))};
 
             // Send our request
             var sendSuccess = await sender.SendToBusWithoutRetries(rq, "transaction-requests", rqHeaders);
@@ -58,17 +61,21 @@ namespace JP.Demo.Chassis.TransactionApi
             }
 
             // Wait for response and return it.
-            try
+            var traceBuilder = tracer.BuildSpan("Wait for Kafka reply");
+            using (traceBuilder.StartActive(true))
             {
-                using var ts = new CancellationTokenSource();
-                ts.CancelAfter(TimeSpan.FromSeconds(5));
-                await WaitForReplyById(requestId, ts.Token);
-            }
-            catch (TaskCanceledException ex)
-            {
-                // If we fail, return null
-                logger.LogError("Task cancelled waiting for response", ex);
-                return null;
+                try
+                {
+                    using var ts = new CancellationTokenSource();
+                    ts.CancelAfter(TimeSpan.FromSeconds(5));
+                    await WaitForReplyById(requestId, ts.Token);
+                }
+                catch (TaskCanceledException ex)
+                {
+                    // If we fail, return null
+                    logger.LogError("Task cancelled waiting for response", ex);
+                    return null;
+                }
             }
 
             if (pendingRequests.TryRemove(requestId, out var reply))
@@ -86,7 +93,7 @@ namespace JP.Demo.Chassis.TransactionApi
             logger.LogInformation($"Waiting for {requestId}");
             while (!cancelToken.IsCancellationRequested)
             {
-                await Task.Delay(50);
+                await Task.Delay(10);
                 if (pendingRequests[requestId] != null)
                 {
                     return;

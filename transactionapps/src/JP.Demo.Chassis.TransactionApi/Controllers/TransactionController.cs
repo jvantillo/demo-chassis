@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using JP.Demo.Chassis.SharedCode.Schemas;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using OpenTracing;
 
 namespace JP.Demo.Chassis.TransactionApi.Controllers
 {
@@ -13,11 +14,13 @@ namespace JP.Demo.Chassis.TransactionApi.Controllers
         private static readonly Random rand = new Random();
         private readonly ILogger<TransactionController> logger;
         private readonly RequestReplyImplementation impl;
+        private readonly ITracer tracer;
 
-        public TransactionController(ILogger<TransactionController> logger, RequestReplyImplementation impl)
+        public TransactionController(ILogger<TransactionController> logger, RequestReplyImplementation impl, ITracer tracer)
         {
             this.logger = logger;
             this.impl = impl;
+            this.tracer = tracer;
         }
 
         [HttpGet]
@@ -26,7 +29,11 @@ namespace JP.Demo.Chassis.TransactionApi.Controllers
         {
             logger.LogInformation("Generating and sending new transaction...");
             var trans = GenerateNewRandomTransaction();
+
+            var spanBuilder = tracer.BuildSpan("Send transaction request to Kafka");
+            using var rSpan = spanBuilder.StartActive(true);
             var reply = await impl.RequestTransaction(trans);
+
             if (reply == null)
             {
                 return StatusCode(500);
