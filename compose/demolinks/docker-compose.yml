@@ -1,0 +1,19 @@
+version: '3.7'
+
+services:
+    demolinks:
+      container_name: demolinks
+      image: nginx
+      networks:
+        - chassis
+      volumes:
+        - ./nginx-data/html:/usr/share/nginx/html
+      labels:
+        SERVICE_80_TAGS: staticsite
+        GLOBAL_NAME: demolinks
+        traefik.enable: true
+        traefik.http.routers.demolinks.entrypoints: http
+
+networks:
+  chassis:
+    external: true

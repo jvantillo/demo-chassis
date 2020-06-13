@@ -1,0 +1,30 @@
+Script for demo
+
+* Show goals
+* Show setup
+* Show application setup
+
+(Switch to Code)
+* Show compose files (just list them, no detail)
+
+(Switch to Firefox)
+* Execute "transaction request"
+
+(Switch to Visual Studio)
+* Show projects
+* Show docker compose file
+
+(Switch to browser)
+* Show Traefik dashboard
+* Show Consul dashboard
+* Show Grafana dashboard for WebAPI
+* Show Kafka flow metrics of 'transaction' topics
+
+? * Back to Grafana, show metrics of producer & consumer
+
+( Switch to second, empty Visual Studio)
+* Create weatherinfo project
+* Update code
+* Run container
+* Show traefik
+* Show Kafka dashboard with abaility to select the new API

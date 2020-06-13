@@ -1,5 +1,7 @@
-. {
-    log
+dns://.:53 {
+    log . "{remote}:{port} - {>id} {proto} Request: {name} {type} {>id}" {
+      class all
+    }
     errors
     cache  10
 
@@ -9,8 +11,24 @@
     }
 }
 
+https://.:5553 {
+
+	tls /etc/coredns/ssh-scripts/coredns.pem /etc/coredns/ssh-scripts/coredns.key /etc/coredns/ssh-scripts/rootCA.crt
+
+  file /etc/coredns/localdev.zone localdev
+  forward . /etc/resolv.conf {
+      except consul
+  }
+
+  log . "{remote}:{port} - {>id} {proto} Request: {name} {type} {>id}" {
+    class all
+  }
+  errors
+  cache  10
+}
+
 consul {
-  log
+	tls /etc/coredns/ssh-scripts/coredns.pem /etc/coredns/ssh-scripts/coredns.key /etc/coredns/ssh-scripts/rootCA.crt
   errors
   forward . 172.30.30.31:8600
 }

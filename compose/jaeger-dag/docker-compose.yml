@@ -8,8 +8,6 @@ services:
         ES_NODES: http://elasticsearch:9200
       networks:
         - chassis
-      labels:
-        traefik.enable: false
 
 networks:
   chassis:

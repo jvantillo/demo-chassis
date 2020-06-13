@@ -2,6 +2,28 @@ version: '3.7'
 
 services:
 
+  # Public HTTP API for transactions. This would be exposed to the outside world, while the rest of our services are private
+  jp.demo.chassis.transactionapi:
+    image: ${DOCKER_REGISTRY-}demotransactionapi
+    hostname: transactionapi
+    container_name: transactionapi
+    build:
+      context: .
+      dockerfile: src/JP.Demo.Chassis.TransactionApi/Dockerfile
+    networks:
+      - chassis
+    dns: 172.30.30.30    # Needed for now so we can find Consul services. Only for demo, not for real-world
+    environment:
+      GLOBAL_NAME: transactionapi   # This is important as it is used in (for example) tracing. Our global name should be unique.
+      JAEGER_AGENT_HOST: jaeger-agent-6831.service.consul     # Our tracing host.
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:80
+    labels:
+      GLOBAL_NAME: transactionapi     # Same as the env var. In this demo, for example used by Traefik to construct a subdomain name.
+      SERVICE_80_TAGS: webapi         # These are the tags provided to Consul.
+      traefik.enable: true            # Explicitly enable it edge routing
+      traefik.http.routers.transactionapi.entrypoints: http       # Only listen on the 'http' endpoint. Normally this label would be auto-created but in this demo we do not have a mechanism for that
+
   # Transaction Service consumes incoming transaction requests, processes them and emits an event
   #jp.demo.chassis.transactionservice:
   #  image: ${DOCKER_REGISTRY-}jpdemochassistransactionservice
@@ -26,33 +48,6 @@ services:
   #    - chassis
 
 
-  # Public HTTP API for transactions. This would be exposed to the outside world, while the rest of our services are private
-  jp.demo.chassis.transactionapi:
-    image: ${DOCKER_REGISTRY-}jpdemochassistransactionapi
-    hostname: transactionapi
-    container_name: transactionapi
-    ports:
-      # - "22001:443" // Disabled, see comment below. Eventually, replace 80 with 443 entirely
-      - "22002:80"
-    build:
-      context: .
-      dockerfile: src/JP.Demo.Chassis.TransactionApi/Dockerfile
-    networks:
-      - chassis
-    dns: 172.30.30.30    # Needed for now so we can find Consul services. Only for demo, not for real-world
-    environment:
-      ASPNETCORE_ENVIRONMENT: Development
-      #ASPNETCORE_URLS: https://+:443;http://+:80     // Disabled so we don't have to deal with certs right now
-      ASPNETCORE_URLS: http://+:80
-      GLOBAL_NAME: transactionapi   # This is important as it is used in (for example) tracing. Our global name should be unique
-      JAEGER_AGENT_HOST: jaeger-agent-6831.service.consul     # Our tracing target
-    labels:
-      GLOBAL_NAME: transactionapi     # Used by Traefik
-      SERVICE_80_TAGS: webapi
-      traefik.enable: true      # Explicily enable it for edge routing
-      traefik.http.routers.transactionapi.entrypoints: http       # Only listen on the 'http' endpoint
-      #traefik.http.services.transactionapi.loadbalancer.server.port: 80           # Not needed in demo, but added for clarity
-      #traefik.http.routers.transactionapi.rule: Host(`transactionapi.localdev`)     # Allows us to override, if we want to
 
 networks:
   chassis:
