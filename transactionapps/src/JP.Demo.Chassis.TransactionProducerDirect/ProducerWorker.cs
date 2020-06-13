@@ -4,44 +4,51 @@ using System.Threading.Tasks;
 using Confluent.Kafka;
 using Confluent.SchemaRegistry;
 using Confluent.SchemaRegistry.Serdes;
+using JP.Demo.Chassis.SharedCode.Kafka;
 using JP.Demo.Chassis.SharedCode.Schemas;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+using Microsoft.Extensions.Options;
 
 namespace JP.Demo.Chassis.TransactionProducerDirect
 {
-    public class Worker : BackgroundService
+    public class ProducerWorker : BackgroundService
     {
-        private readonly ILogger<Worker> logger;
+        private readonly ILogger<ProducerWorker> logger;
         private readonly Random rand = new Random();
+        private readonly KafkaConfig kafkaOptions;
 
-        public Worker(ILogger<Worker> logger)
+        public ProducerWorker(ILogger<ProducerWorker> logger, IOptions<KafkaConfig> kafkaOptions)
         {
+            this.kafkaOptions = kafkaOptions.Value;
             this.logger = logger;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             logger.LogInformation("Beginning direct transaction producer");
-            try
+            while (!stoppingToken.IsCancellationRequested)
             {
-                await ProduceTransactions(stoppingToken);
+                try
+                {
+                    await ProduceTransactions(stoppingToken);
+                }
+                catch (Exception e)
+                {
+                    logger.LogInformation("Failure in producer: " + e.Message, e);
+                    await Task.Delay(1000);
+                }
             }
-            catch (Exception e)
-            {
-                logger.LogInformation("Failure in producer: " + e.Message, e);
-                throw;
-            }
+
             logger.LogInformation("Stopping direct transaction producer");
         }
 
         private async Task ProduceTransactions(CancellationToken stoppingToken)
         {
-            var config = new ProducerConfig { BootstrapServers = "broker:29092" };
+            var config = new ProducerConfig { BootstrapServers = kafkaOptions.BootstrapServerUri };
             var schemaRegistryConfig = new SchemaRegistryConfig
             {
-                Url = "http://schema-registry:8081"
+                Url = kafkaOptions.SchemaRegistryUri
             };
             var jsonSerializerConfig = new JsonSerializerConfig();
 
@@ -62,7 +69,9 @@ namespace JP.Demo.Chassis.TransactionProducerDirect
                     {
                         Value = GenerateNewRandomTransaction()
                     };
-                    var deliveryResult = await producer.ProduceAsync("transaction-requests", newMessage, stoppingToken);
+
+                    var deliverTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(1));
+                    var deliveryResult = await producer.ProduceAsync("transaction-requests", newMessage, deliverTokenSource.Token);
                     logger.LogInformation($"Delivered '{deliveryResult.Value}' to '{deliveryResult.TopicPartitionOffset}'");
                     await Task.Delay(2000, stoppingToken);
                 }
@@ -77,6 +86,7 @@ namespace JP.Demo.Chassis.TransactionProducerDirect
         {
             return new TransactionRequest
             {
+                RequestId = "DIRECT-" + rand.Next(Int32.MaxValue),
                 Amount = rand.Next(1, 100000),
                 From = "BANK-A-" + rand.Next(100000, 1000000).ToString().PadLeft(8, '0'),
                 To = "BANK-B-" + rand.Next(100000, 1000000).ToString().PadLeft(8, '0')

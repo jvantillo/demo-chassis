@@ -1,12 +1,13 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using Newtonsoft.Json;
 
 namespace JP.Demo.Chassis.SharedCode.Schemas
 {
-    public class TransactionRequest
+    public class TransactionCreated
     {
         [JsonRequired]
-        [JsonProperty("requestid")]
-        public string RequestId { get; set; }
+        [JsonProperty("createdat")]
+        public DateTime CreatedAt { get; set; }
 
         [JsonRequired]
         [JsonProperty("from")]

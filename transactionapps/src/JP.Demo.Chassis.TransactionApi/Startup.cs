@@ -2,6 +2,8 @@
 using Jaeger;
 using Jaeger.Reporters;
 using Jaeger.Samplers;
+using JP.Demo.Chassis.SharedCode.Kafka;
+using JP.Demo.Chassis.SharedCode.Schemas;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -29,10 +31,18 @@ namespace JP.Demo.Chassis.TransactionApi
         {
             services.AddControllers();
 
+            services.Configure<KafkaConfig>(Configuration.GetSection("KafkaConfig"));
+
             services.AddJaegerTracing(options => {
                 options.JaegerAgentHost = Configuration["JAEGER_AGENT_HOST"];
                 options.ServiceName = Configuration["GLOBAL_NAME"];
             });
+
+            services.AddHostedService<KafkaReplyWorker>();
+
+            services.AddSingleton<KafkaSender<TransactionRequest>>();
+            services.AddSingleton<KafkaRequestReplyGroup>();
+            services.AddSingleton<RequestReplyImplementation>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

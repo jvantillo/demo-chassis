@@ -8,10 +8,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Confluent.Kafka" Version="1.4.3" />
+    <PackageReference Include="Confluent.SchemaRegistry.Serdes.Json" Version="1.4.3" />
     <PackageReference Include="Jaeger" Version="0.3.7" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.9.10" />
     <PackageReference Include="OpenTracing.Contrib.NetCore" Version="0.6.2" />
     <PackageReference Include="prometheus-net.AspNetCore" Version="3.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\JP.Demo.Chassis.SharedCode\JP.Demo.Chassis.SharedCode.csproj" />
   </ItemGroup>
 
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using JP.Demo.Chassis.SharedCode.Kafka;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace JP.Demo.Chassis.TransactionProducerDirect
@@ -14,7 +15,8 @@ namespace JP.Demo.Chassis.TransactionProducerDirect
             Host.CreateDefaultBuilder(args)
                 .ConfigureServices((hostContext, services) =>
                 {
-                    services.AddHostedService<Worker>();
+                    services.Configure<KafkaConfig>(hostContext.Configuration.GetSection("KafkaConfig"));
+                    services.AddHostedService<ProducerWorker>();
                 });
     }
 }

@@ -1,7 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using JP.Demo.Chassis.SharedCode.Kafka;
+using JP.Demo.Chassis.SharedCode.Schemas;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -18,7 +16,10 @@ namespace JP.Demo.Chassis.TransactionService
             Host.CreateDefaultBuilder(args)
                 .ConfigureServices((hostContext, services) =>
                 {
-                    services.AddHostedService<Worker>();
+                    services.Configure<KafkaConfig>(hostContext.Configuration.GetSection("KafkaConfig"));
+                    services.AddSingleton<KafkaSender<TransactionCreated>>();
+                    services.AddSingleton<KafkaSender<TransactionReply>>();
+                    services.AddHostedService<ConsumerWorker>();
                 });
     }
 }

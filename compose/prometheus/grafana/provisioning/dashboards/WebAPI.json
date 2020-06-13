@@ -15,8 +15,7 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 1,
-  "iteration": 1591543796451,
+  "iteration": 1592054586914,
   "links": [],
   "panels": [
     {
@@ -553,9 +552,9 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
-          "text": "jpdemochassistransactionapi",
-          "value": "jpdemochassistransactionapi"
+          "selected": false,
+          "text": "demotransactionapi",
+          "value": "demotransactionapi"
         },
         "datasource": "Prometheus",
         "definition": "http_requests_received_total",
@@ -564,15 +563,9 @@
         "label": null,
         "multi": false,
         "name": "service",
-        "options": [
-          {
-            "selected": true,
-            "text": "jpdemochassistransactionapi",
-            "value": "jpdemochassistransactionapi"
-          }
-        ],
+        "options": [],
         "query": "http_requests_received_total",
-        "refresh": 0,
+        "refresh": 2,
         "regex": "/.*service=\"([^\"]*).*/",
         "skipUrlSync": false,
         "sort": 5,
@@ -604,5 +597,5 @@
   "timezone": "",
   "title": "WebAPI",
   "uid": "z16zcdiMk",
-  "version": 11
+  "version": 1
 }
