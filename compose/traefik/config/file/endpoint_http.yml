@@ -1,0 +1,8 @@
+http:
+  middlewares:
+    http-ratelimit:
+      rateLimit:
+        average: 100      # max req/s
+        sourceCriterion:
+          ipStrategy: {}
+          requestHost: true

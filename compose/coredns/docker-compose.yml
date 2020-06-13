@@ -13,8 +13,6 @@ services:
     networks:
       chassis:
         ipv4_address: 172.30.30.30
-    labels:
-      traefik.enable: false
 
 networks:
   chassis:

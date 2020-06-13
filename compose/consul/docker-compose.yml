@@ -7,8 +7,6 @@ services:
     networks:
       - chassis
     command: "agent -retry-join consul-server-bootstrap -client 0.0.0.0"
-    labels:
-      traefik.enable: false
 
   consul-agent-2:
     <<: *consul-agent
@@ -18,7 +16,9 @@ services:
 
   consul-server-1: &consul-server
     <<: *consul-agent
-    command: "agent -server -retry-join consul-server-bootstrap -client 0.0.0.0"
+    command: "agent -server -retry-join consul-server-bootstrap -client 0.0.0.0 -config-dir=etc/consul-config/"
+    volumes:
+      - ./config-server/:/etc/consul-config/
 
   consul-server-2:
     <<: *consul-server
@@ -28,11 +28,13 @@ services:
     hostname: consul-bootstrap
     container_name: consul-bootstrap
     ports:
-      - "8400:8400"
+      # - "8400:8400"
       - "8500:8500"
-      - "8600:8600"
-      - "8600:8600/udp"
-    command: "agent -server -bootstrap-expect 3 -ui -client 0.0.0.0"
+      # - "8600:8600"
+      # - "8600:8600/udp"
+    command: "agent -server -bootstrap-expect 3 -ui -client 0.0.0.0 -config-dir=etc/consul-config/"
+    volumes:
+      - ./config-server/:/etc/consul-config/
     networks:
       chassis:
         ipv4_address: 172.30.30.31
@@ -49,8 +51,6 @@ services:
       - chassis
     depends_on:
       - consul-server-bootstrap
-    labels:
-      traefik.enable: false
 
 networks:
   chassis:

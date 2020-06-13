@@ -47,10 +47,12 @@ services:
       GLOBAL_NAME: transactionapi   # This is important as it is used in (for example) tracing. Our global name should be unique
       JAEGER_AGENT_HOST: jaeger-agent-6831.service.consul     # Our tracing target
     labels:
+      GLOBAL_NAME: transactionapi     # Used by Traefik
       SERVICE_80_TAGS: webapi
-      traefik.enable: true
-      traefik.http.services.transactionapi.loadbalancer.server.port: 80
-      traefik.http.routers.transactionapi.rule: Host(`transactionapi.localdev`)
+      traefik.enable: true      # Explicily enable it for edge routing
+      traefik.http.routers.transactionapi.entrypoints: http       # Only listen on the 'http' endpoint
+      #traefik.http.services.transactionapi.loadbalancer.server.port: 80           # Not needed in demo, but added for clarity
+      #traefik.http.routers.transactionapi.rule: Host(`transactionapi.localdev`)     # Allows us to override, if we want to
 
 networks:
   chassis:

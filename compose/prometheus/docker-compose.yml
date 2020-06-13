@@ -12,8 +12,6 @@ services:
     networks:
       - chassis
     dns: 172.30.30.30
-    labels:
-      traefik.enable: false
 
   grafana:
     image: grafana/grafana
@@ -30,8 +28,6 @@ services:
     networks:
       - chassis
     dns: 172.30.30.30
-    labels:
-      traefik.enable: false
 
 networks:
   chassis:

@@ -8,8 +8,6 @@ services:
     networks:
       - chassis
     dns: 172.30.30.30    # So we can diagnose as if we are one of the other containers
-    labels:
-      traefik.enable: false
 
 networks:
   chassis:

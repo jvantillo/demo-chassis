@@ -1,6 +1,9 @@
 entrypoints:
   http:
     address: ':80'
+    http:
+      middlewares:
+        - http-ratelimit@file
   metrics:
     address: ':8089'
 
@@ -11,7 +14,11 @@ providers:
   #   rootkey: traefik
 
   # Falling back to docker since registrator cannot automatically fill the Consul K/V store :(
-  docker: {}
+  docker:
+    exposedByDefault: false
+    defaultRule: "Host(`{{ index .Labels \"GLOBAL_NAME\" }}.localdev`)"
+  file:
+    directory: /etc/traefik/file/
 
 api:
   dashboard: true
