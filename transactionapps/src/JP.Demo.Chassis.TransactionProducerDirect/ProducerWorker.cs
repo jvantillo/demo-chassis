@@ -38,7 +38,7 @@ namespace JP.Demo.Chassis.TransactionProducerDirect
                 catch (Exception e)
                 {
                     logger.LogInformation("Failure in producer: " + e.Message, e);
-                    await Task.Delay(1000);
+                    await Task.Delay(1000, stoppingToken);
                 }
             }
 

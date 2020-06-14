@@ -2,7 +2,10 @@ version: '3.7'
 
 services:
 
-  # Public HTTP API for transactions. This would be exposed to the outside world, while the rest of our services are private
+  ##################
+  # Public HTTP API for transactions. This is exposed to the outside world, while the rest of our services are private.
+  # Does not do any processing by itself, but defers this through Kafka
+  ##################
   transactionapi:
     image: ${DOCKER_REGISTRY-}demotransactionapi
     hostname: transactionapi
@@ -10,9 +13,6 @@ services:
     build:
       context: .
       dockerfile: src/JP.Demo.Chassis.TransactionApi/Dockerfile
-    networks:
-      - chassis
-    dns: 172.30.30.30    # Needed for now so we can find Consul services. Only for demo, not for real-world
     environment:
       GLOBAL_NAME: transactionapi   # This is important as it is used in (for example) tracing. Our global name should be unique.
 
@@ -30,8 +30,14 @@ services:
       SERVICE_80_TAGS: webapi         # These are the tags provided to Consul.
       traefik.enable: true            # Explicitly enable it edge routing
       traefik.http.routers.transactionapi.entrypoints: http       # Only listen on the 'http' endpoint. Normally this label would be auto-created but in this demo we do not have a mechanism for that
+    networks:
+      - chassis
+    dns: 172.30.30.30    # Needed for now so we can find Consul services. Only for demo, not for real-world
 
+
+  ######################
   # Transaction Service consumes incoming transaction requests, processes them and emits an event
+  ######################
   transactionservice:
     image: ${DOCKER_REGISTRY-}demotransactionservice
     hostname: transactionservice
@@ -39,9 +45,30 @@ services:
     build:
       context: .
       dockerfile: src/JP.Demo.Chassis.TransactionService/Dockerfile
+    environment:
+      GLOBAL_NAME: transactionservice
+
+      KafkaConfig__BootstrapServerUri: cp-server.service.consul:29092
+      KafkaConfig__SchemaRegistryUri: http://cp-schema-registry.service.consul:8081
+
+      # These are environmental options that can be generated
+      JAEGER_AGENT_HOST: jaeger-agent-6831.service.consul     # Our tracing host.
     networks:
       - chassis
     dns: 172.30.30.30    # Needed for now so we can find Consul services. Only for demo, not for real-world
+
+  
+  
+  ######################
+  # Produces transactions directly to the bus. Simulates a separate (non-HTTP) ingress point
+  ######################
+  transactionproducerdirect:
+    image: ${DOCKER_REGISTRY-}demotransactionproducerdirect
+    hostname: transactionproducerdirect
+    container_name: transactionproducerdirect
+    build:
+      context: .
+      dockerfile: src/JP.Demo.Chassis.TransactionProducerDirect/Dockerfile
     environment:
       GLOBAL_NAME: transactionservice
 
@@ -51,18 +78,9 @@ services:
       # These are environmental options that can be generated
       JAEGER_AGENT_HOST: jaeger-agent-6831.service.consul     # Our tracing host.
 
-  
-  
-  ## Produces transactions directly to the bus. Simulates a separate (non-HTTP) ingress point
-  #jp.demo.chassis.transactionproducerdirect:
-  #  image: ${DOCKER_REGISTRY-}jpdemochassistransactionproducerdirect
-  #  hostname: transactionproducerdirect
-  #  container_name: transactionproducerdirect
-  #  build:
-  #    context: .
-  #    dockerfile: src/JP.Demo.Chassis.TransactionProducerDirect/Dockerfile
-  #  networks:
-  #    - chassis
+    networks:
+      - chassis
+    dns: 172.30.30.30    # Needed for now so we can find Consul services. Only for demo, not for real-world
 
 
 

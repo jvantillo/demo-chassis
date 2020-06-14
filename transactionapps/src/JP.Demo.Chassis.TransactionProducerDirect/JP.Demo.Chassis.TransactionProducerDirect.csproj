@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\JP.Demo.Chassis.JaegerShared\JP.Demo.Chassis.JaegerShared.csproj" />
     <ProjectReference Include="..\JP.Demo.Chassis.SharedCode\JP.Demo.Chassis.SharedCode.csproj" />
   </ItemGroup>
 </Project>
