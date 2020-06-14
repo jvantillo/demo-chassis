@@ -87,9 +87,9 @@ namespace JP.Demo.Chassis.TransactionProducerDirect
             return new TransactionRequest
             {
                 RequestId = "DIRECT-" + rand.Next(Int32.MaxValue),
-                Amount = rand.Next(1, 100000),
-                From = "BANK-A-" + rand.Next(100000, 1000000).ToString().PadLeft(8, '0'),
-                To = "BANK-B-" + rand.Next(100000, 1000000).ToString().PadLeft(8, '0')
+                AmountCents = rand.Next(1, 100000),
+                FromAccount = "BANK-A-" + rand.Next(100000, 1000000).ToString().PadLeft(8, '0'),
+                ToAccount = "BANK-B-" + rand.Next(100000, 1000000).ToString().PadLeft(8, '0')
             };
         }
     }

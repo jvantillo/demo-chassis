@@ -8,7 +8,7 @@ namespace JP.Demo.Chassis.SharedCode.Schemas
         /// Note: this is the ID of the request we are replying to. Not the message ID or something
         /// </summary>
         [JsonRequired]
-        [JsonProperty("requestid")]
+        [JsonProperty("request_id")]
         public string RequestId { get; set; }
 
         [JsonRequired]

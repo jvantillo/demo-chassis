@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Confluent.Kafka;
 using Confluent.Kafka.SyncOverAsync;
 using Confluent.SchemaRegistry.Serdes;
+using JP.Demo.Chassis.SharedCode;
 using JP.Demo.Chassis.SharedCode.Kafka;
 using JP.Demo.Chassis.SharedCode.Kafka.Tracing;
 using JP.Demo.Chassis.SharedCode.Schemas;
@@ -24,7 +25,6 @@ namespace JP.Demo.Chassis.TransactionApi
         private readonly ITracer tracer;
         private readonly KafkaConfig kafkaOptions;
         private readonly string myUniqueConsumerGroup;
-        private static readonly Random rand = new Random();
 
         public KafkaReplyWorker(ILogger<KafkaReplyWorker> logger,
             IOptions<KafkaConfig> kafkaOptions,
@@ -39,15 +39,8 @@ namespace JP.Demo.Chassis.TransactionApi
             this.kafkaOptions = kafkaOptions.Value;
 
             // Assign a unique consumer group name
-            myUniqueConsumerGroup = "RPL-" + RandomString(16);
+            myUniqueConsumerGroup = "RPL-" + RandomUtil.RandomString(16);
             // note: technically we could generate a duplicate or old ID. This would have nasty effects. Use time + pid or something to make them unique
-        }
-
-        public static string RandomString(int length)
-        {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            return new string(Enumerable.Repeat(chars, length)
-                .Select(s => s[rand.Next(s.Length)]).ToArray());
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)

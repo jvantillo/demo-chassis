@@ -5,19 +5,19 @@ namespace JP.Demo.Chassis.SharedCode.Schemas
     public class TransactionRequest
     {
         [JsonRequired]
-        [JsonProperty("requestid")]
+        [JsonProperty("request_id")]
         public string RequestId { get; set; }
 
         [JsonRequired]
-        [JsonProperty("from")]
-        public string From { get; set; }
+        [JsonProperty("from_account")]
+        public string FromAccount { get; set; }
 
         [JsonRequired]
-        [JsonProperty("to")]
-        public string To { get; set; }
+        [JsonProperty("to_account")]
+        public string ToAccount { get; set; }
 
         [JsonRequired]
-        [JsonProperty("amount")]
-        public int Amount { get; set; }
+        [JsonProperty("amount_cents")]
+        public int AmountCents { get; set; }
     }
 }

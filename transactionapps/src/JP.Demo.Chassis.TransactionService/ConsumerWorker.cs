@@ -88,7 +88,7 @@ namespace JP.Demo.Chassis.TransactionService
                         using var s = spanBuilder.StartActive(true);
 
                         var rq = cr.Message.Value;
-                        logger.LogInformation($"Consumed message '{rq}' (amount: {rq.Amount}) at: '{cr.TopicPartitionOffset}'.");
+                        logger.LogInformation($"Consumed message '{rq}' (amount: {rq.AmountCents}) at: '{cr.TopicPartitionOffset}'.");
 
                         var replyGroupId = cr.Message.Headers.SingleOrDefault(p => p.Key == "reply-group-id");
 
@@ -102,14 +102,19 @@ namespace JP.Demo.Chassis.TransactionService
                         // of which can fail independently.
                         
                         // Do our 'processing'
-                        var reply = new TransactionReply {RequestId = rq.RequestId, Status = $"Transaction of value {rq.Amount} has been processed"};
+                        var reply = new TransactionReply {RequestId = rq.RequestId, Status = $"Transaction of value {rq.AmountCents} has been processed"};
                         var replyHeaders = new List<Tuple<string, byte[]>>();
                         if (replyGroupId != null)
                         {
                             replyHeaders.Add(new Tuple<string, byte[]>("reply-group-id", replyGroupId.GetValueBytes()));
                         }
 
-                        var createdEvent = new TransactionCreated { Amount = rq.Amount, From = rq.From, To = rq.To, CreatedAt = DateTime.UtcNow };
+                        var createdEvent = new TransactionCreated
+                        {
+                            AmountCents = rq.AmountCents, FromAccount = rq.FromAccount, ToAccount = rq.ToAccount, 
+                            CreatedAt = DateTime.UtcNow,
+                            TransactionId = Guid.NewGuid().ToString("B")
+                        };
 
                         await createdSender.SendToBusWithoutRetries(createdEvent, "transactions");
                         await replySender.SendToBusWithoutRetries(reply, "transaction-replies", replyHeaders);
