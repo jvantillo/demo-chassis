@@ -2,7 +2,7 @@
 
 namespace JP.Demo.Chassis.SharedCode.Schemas
 {
-    public class TransactionRequest
+    public class TransactionRequest : IRequestIdentifier
     {
         [JsonRequired]
         [JsonProperty("request_id")]

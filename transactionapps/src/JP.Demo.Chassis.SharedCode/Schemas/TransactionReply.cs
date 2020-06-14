@@ -2,7 +2,7 @@
 
 namespace JP.Demo.Chassis.SharedCode.Schemas
 {
-    public class TransactionReply
+    public class TransactionReply : IRequestIdentifier
     {
         /// <summary>
         /// Note: this is the ID of the request we are replying to. Not the message ID or something

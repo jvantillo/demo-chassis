@@ -41,7 +41,7 @@ namespace JP.Demo.Chassis.TransactionApi
 
             services.AddSingleton<KafkaSender<TransactionRequest>>();
             services.AddSingleton<KafkaRequestReplyGroup>();
-            services.AddSingleton<RequestReplyImplementation>();
+            services.AddSingleton<RequestReplyImplementation<TransactionRequest, TransactionReply>>();
             services.AddSingleton<KafkaConsumer<TransactionReply>>();
         }
 

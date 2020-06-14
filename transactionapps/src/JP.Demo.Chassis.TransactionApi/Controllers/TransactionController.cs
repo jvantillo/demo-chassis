@@ -13,10 +13,10 @@ namespace JP.Demo.Chassis.TransactionApi.Controllers
     {
         private static readonly Random rand = new Random();
         private readonly ILogger<TransactionController> logger;
-        private readonly RequestReplyImplementation impl;
+        private readonly RequestReplyImplementation<TransactionRequest, TransactionReply> impl;
         private readonly ITracer tracer;
 
-        public TransactionController(ILogger<TransactionController> logger, RequestReplyImplementation impl, ITracer tracer)
+        public TransactionController(ILogger<TransactionController> logger, RequestReplyImplementation<TransactionRequest, TransactionReply> impl, ITracer tracer)
         {
             this.logger = logger;
             this.impl = impl;

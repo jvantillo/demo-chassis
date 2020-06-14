@@ -14,12 +14,12 @@ namespace JP.Demo.Chassis.TransactionApi
     {
         private readonly ILogger<KafkaReplyWorker> logger;
         private readonly KafkaRequestReplyGroup replyGroup;
-        private readonly RequestReplyImplementation reqRep;
+        private readonly RequestReplyImplementation<TransactionRequest, TransactionReply> reqRep;
         private readonly KafkaConsumer<TransactionReply> consumer;
 
         public KafkaReplyWorker(ILogger<KafkaReplyWorker> logger,
             KafkaRequestReplyGroup replyGroup,
-            RequestReplyImplementation reqRep,
+            RequestReplyImplementation<TransactionRequest, TransactionReply> reqRep,
             KafkaConsumer<TransactionReply> consumer)
         {
             this.logger = logger;
