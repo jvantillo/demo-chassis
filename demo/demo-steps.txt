@@ -18,9 +18,12 @@ Script for demo
 * Show Traefik dashboard
 * Show Consul dashboard
 * Show Grafana dashboard for WebAPI
-* Show Kafka flow metrics of 'transaction' topics
 
-? * Back to Grafana, show metrics of producer & consumer
+(To Kafka)
+* Show transaction topics + their metrics, schema, etc
+* Show ksqlDB queries
+* Next step: notify on high value transaction
+* Show a topic was created in the background
 
 ( Switch to second, empty Visual Studio)
 * Create weatherinfo project

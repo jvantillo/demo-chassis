@@ -1,0 +1,50 @@
+
+# Query to turn the topic into a stream
+
+CREATE STREAM TRANSACTIONS
+  (transaction_id string,
+   from_account string,
+   to_account string,
+   amount_cents integer,
+   created_at string)
+  WITH (KAFKA_TOPIC='transactions',
+        VALUE_FORMAT='JSON_SR');
+		
+		
+# Create a new stream from the previous one to filter only high-value transactions
+		
+CREATE STREAM TRANSACTIONS_HIGHVALUE
+  WITH (VALUE_FORMAT='JSON_SR')
+  AS SELECT
+   transaction_id,
+   from_account,
+   to_account,
+   amount_cents,
+   created_at
+  FROM TRANSACTIONS
+  WHERE amount_cents > 70000;
+
+
+# Put in a table most recent window where an account had 3 or more high value transactions
+
+CREATE TABLE TRANSACTIONS_HIGH_FREQUENCY_MOMENTS AS
+  SELECT from_account, COUNT(*) FROM TRANSACTIONS_HIGHVALUE
+  WINDOW HOPPING (SIZE 30 SECONDS, ADVANCE BY 10 SECONDS)
+  GROUP BY from_account
+  HAVING COUNT(*) > 2;
+  
+  
+# Or, just how many high value transactons we had recently per account
+  
+CREATE TABLE TRANSACTIONS_VOLUME_RECENT AS
+  SELECT from_account, COUNT(*) FROM TRANSACTIONS_HIGHVALUE
+  WINDOW HOPPING (SIZE 30 SECONDS, ADVANCE BY 10 SECONDS)
+  GROUP BY from_account;
+  
+  
+# Recent highest amount
+
+CREATE TABLE TRANSACTIONS_RECENT_HIGHEST_AMOUNT AS
+  SELECT from_account, MAX(amount_cents) FROM TRANSACTIONS
+  WINDOW HOPPING (SIZE 30 SECONDS, ADVANCE BY 10 SECONDS)
+  GROUP BY from_account;

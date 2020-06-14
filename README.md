@@ -29,6 +29,13 @@ Several ports are exposed, including:
 
 Useful links:
 
+Docker
+
 * https://kubernetes.io/blog/2020/05/21/wsl-docker-kubernetes-on-the-windows-desktop/
 * https://github.com/Sinkler/docker-nginx-blue-green
 * https://github.com/gliderlabs/registrator
+
+
+Kafka
+
+* https://github.com/mhowlett/howlett-kafka-extensions

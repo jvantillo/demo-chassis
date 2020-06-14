@@ -1,4 +1,5 @@
 ﻿using JP.Demo.Chassis.SharedCode.Kafka;
+using JP.Demo.Chassis.SharedCode.Schemas;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -17,6 +18,8 @@ namespace JP.Demo.Chassis.TransactionProducerDirect
                 {
                     services.Configure<KafkaConfig>(hostContext.Configuration.GetSection("KafkaConfig"));
                     services.AddHostedService<ProducerWorker>();
+
+                    services.AddSingleton<KafkaSender<TransactionRequest>>();
                 });
     }
 }

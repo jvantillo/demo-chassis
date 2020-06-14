@@ -35,6 +35,7 @@ namespace JP.Demo.Chassis.TransactionApi
             services.AddSingleton<KafkaSender<TransactionRequest>>();
             services.AddSingleton<KafkaRequestReplyGroup>();
             services.AddSingleton<RequestReplyImplementation>();
+            services.AddSingleton<KafkaConsumer<TransactionReply>>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -1,27 +1,25 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Confluent.Kafka;
-using Confluent.SchemaRegistry;
-using Confluent.SchemaRegistry.Serdes;
 using JP.Demo.Chassis.SharedCode.Kafka;
 using JP.Demo.Chassis.SharedCode.Schemas;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace JP.Demo.Chassis.TransactionProducerDirect
 {
     public class ProducerWorker : BackgroundService
     {
         private readonly ILogger<ProducerWorker> logger;
+        private readonly KafkaSender<TransactionRequest> sender;
         private readonly Random rand = new Random();
-        private readonly KafkaConfig kafkaOptions;
 
-        public ProducerWorker(ILogger<ProducerWorker> logger, IOptions<KafkaConfig> kafkaOptions)
+        public ProducerWorker(ILogger<ProducerWorker> logger, KafkaSender<TransactionRequest> sender)
         {
-            this.kafkaOptions = kafkaOptions.Value;
             this.logger = logger;
+            this.sender = sender;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -31,7 +29,11 @@ namespace JP.Demo.Chassis.TransactionProducerDirect
             {
                 try
                 {
-                    await ProduceTransactions(stoppingToken);
+                    var rq = GenerateNewRandomTransaction();
+                    var rqHeaders = new List<Tuple<string, byte[]>> { new Tuple<string, byte[]>("reply-group-id", Encoding.ASCII.GetBytes("irrelevant-for-me")) };
+                    await sender.SendToBusWithoutRetries(rq, "transaction-requests", rqHeaders);
+
+                    await Task.Delay(250, stoppingToken);
                 }
                 catch (Exception e)
                 {
@@ -43,52 +45,13 @@ namespace JP.Demo.Chassis.TransactionProducerDirect
             logger.LogInformation("Stopping direct transaction producer");
         }
 
-        private async Task ProduceTransactions(CancellationToken stoppingToken)
-        {
-            var config = new ProducerConfig { BootstrapServers = kafkaOptions.BootstrapServerUri };
-            var schemaRegistryConfig = new SchemaRegistryConfig
-            {
-                Url = kafkaOptions.SchemaRegistryUri
-            };
-            var jsonSerializerConfig = new JsonSerializerConfig();
-
-            // If serializers are not specified, default serializers from
-            // `Confluent.Kafka.Serializers` will be automatically used where
-            // available. Note: by default strings are encoded as UTF8.
-            using var schemaRegistry = new CachedSchemaRegistryClient(schemaRegistryConfig);
-            using var producer = new ProducerBuilder<Null, TransactionRequest>(config)
-                .SetValueSerializer(new JsonSerializer<TransactionRequest>(schemaRegistry, jsonSerializerConfig))
-                .Build();
-
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                try
-                {
-                    logger.LogInformation("Trying to deliver message..");
-                    var newMessage = new Message<Null, TransactionRequest>
-                    {
-                        Value = GenerateNewRandomTransaction()
-                    };
-
-                    var deliverTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(1));
-                    var deliveryResult = await producer.ProduceAsync("transaction-requests", newMessage, deliverTokenSource.Token);
-                    logger.LogInformation($"Delivered '{deliveryResult.Value}' to '{deliveryResult.TopicPartitionOffset}'");
-                    await Task.Delay(2000, stoppingToken);
-                }
-                catch (ProduceException<Null, string> e)
-                {
-                    logger.LogInformation($"Delivery failed: {e.Error.Reason}");
-                }
-            }
-        }
-
         private TransactionRequest GenerateNewRandomTransaction()
         {
             return new TransactionRequest
             {
                 RequestId = "DIRECT-" + rand.Next(Int32.MaxValue),
                 AmountCents = rand.Next(1, 100000),
-                FromAccount = "BANK-A-" + rand.Next(100000, 1000000).ToString().PadLeft(8, '0'),
+                FromAccount = "BANK-A-" + rand.Next(1, 10).ToString().PadLeft(8, '0'),
                 ToAccount = "BANK-B-" + rand.Next(100000, 1000000).ToString().PadLeft(8, '0')
             };
         }

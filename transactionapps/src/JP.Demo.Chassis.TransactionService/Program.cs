@@ -31,6 +31,8 @@ namespace JP.Demo.Chassis.TransactionService
                     });
 
                     services.Configure<KafkaConfig>(hostContext.Configuration.GetSection("KafkaConfig"));
+
+                    services.AddSingleton<KafkaConsumer<TransactionRequest>>();
                     services.AddSingleton<KafkaSender<TransactionCreated>>();
                     services.AddSingleton<KafkaSender<TransactionReply>>();
                     services.AddHostedService<ConsumerWorker>();
