@@ -1,4 +1,5 @@
-﻿using JP.Demo.Chassis.SharedCode.Kafka;
+﻿using JP.Demo.Chassis.JaegerShared;
+using JP.Demo.Chassis.SharedCode.Kafka;
 using JP.Demo.Chassis.SharedCode.Schemas;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -25,9 +26,15 @@ namespace JP.Demo.Chassis.TransactionApi
 
             services.Configure<KafkaConfig>(Configuration.GetSection("KafkaConfig"));
 
-            services.AddJaegerTracing(options => {
+            services.AddJaegerTracingForApi(options =>
+            {
                 options.JaegerAgentHost = Configuration["JAEGER_AGENT_HOST"];
                 options.ServiceName = Configuration["GLOBAL_NAME"];
+            }, options =>
+            {
+                // Exclude noise
+                options.Hosting.IgnorePatterns.Add(x => x.Request.Path == "/health");
+                options.Hosting.IgnorePatterns.Add(x => x.Request.Path == "/metrics");
             });
 
             services.AddHostedService<KafkaReplyWorker>();

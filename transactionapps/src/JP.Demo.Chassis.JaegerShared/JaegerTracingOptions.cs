@@ -1,4 +1,4 @@
-﻿namespace JP.Demo.Chassis.TransactionApi
+﻿namespace JP.Demo.Chassis.JaegerShared
 {
     public class JaegerTracingOptions
     {
