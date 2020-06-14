@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "JP.Demo.Chassis.HighValueNotification": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}

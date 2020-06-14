@@ -30,4 +30,4 @@ Script for demo
 * Update code
 * Run container
 * Show traefik
-* Show Kafka dashboard with ability to select the new API
+* Show Prometheus dashboard with ability to select the new API

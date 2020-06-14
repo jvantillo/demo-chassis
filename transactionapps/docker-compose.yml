@@ -70,7 +70,32 @@ services:
       context: .
       dockerfile: src/JP.Demo.Chassis.TransactionProducerDirect/Dockerfile
     environment:
-      GLOBAL_NAME: transactionservice
+      GLOBAL_NAME: transactionproducerdirect
+
+      KafkaConfig__BootstrapServerUri: cp-server.service.consul:29092
+      KafkaConfig__SchemaRegistryUri: http://cp-schema-registry.service.consul:8081
+
+      # These are environmental options that can be generated
+      JAEGER_AGENT_HOST: jaeger-agent-6831.service.consul     # Our tracing host.
+
+    networks:
+      - chassis
+    dns: 172.30.30.30    # Needed for now so we can find Consul services. Only for demo, not for real-world
+
+
+
+  ######################
+  # Notifies when there's a high value transaction happening
+  ######################
+  highvaluenotification:
+    image: ${DOCKER_REGISTRY-}highvaluenotification
+    hostname: highvaluenotification
+    container_name: highvaluenotification
+    build:
+      context: .
+      dockerfile: src/JP.Demo.Chassis.HighValueNotification/Dockerfile
+    environment:
+      GLOBAL_NAME: transactionproducerdirect
 
       KafkaConfig__BootstrapServerUri: cp-server.service.consul:29092
       KafkaConfig__SchemaRegistryUri: http://cp-schema-registry.service.consul:8081
@@ -87,3 +112,4 @@ services:
 networks:
   chassis:
     external: true
+
