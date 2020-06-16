@@ -6,18 +6,27 @@ Script for demo
 
 (Switch to Code)
 * Show compose files (just list them, no detail)
+* Show all-up file
+
+(Switch to container dashboard)
+* Show containers
+
+(Switch to Visual Studio)
+* Show projects
+* Deploy containers
+* Show container dashboard
 
 (Switch to Firefox)
 * Execute "transaction request"
 
-(Switch to Visual Studio)
-* Show projects
-* Show docker compose file
-
-(Switch to browser)
 * Show Traefik dashboard
 * Show Consul dashboard
 * Show Grafana dashboard for WebAPI
+* SHow Jaeger
+
+(Switch to Visual Studio)
+* Show docker compose file
+* Enable automatic producer, build & run
 
 (To Kafka)
 * Show transaction topics + their metrics, schema, etc
@@ -25,9 +34,8 @@ Script for demo
 * Next step: notify on high value transaction
 * Show a topic was created in the background
 
-( Switch to second, empty Visual Studio)
-* Create weatherinfo project
-* Update code
-* Run container
-* Show traefik
-* Show Prometheus dashboard with ability to select the new API
+( Visual Studio )
+* Show 'high value' project
+* Show code
+* Enable & run container
+* Show output in container log

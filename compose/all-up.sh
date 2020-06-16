@@ -1,9 +1,6 @@
 #!/bin/sh
 set -e
 
-#!/bin/sh
-set -e
-
 (cd coredns && docker-compose up -d --build)
 (cd consul && docker-compose up -d --build)
 
