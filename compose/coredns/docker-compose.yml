@@ -6,8 +6,8 @@ services:
     container_name: coredns
     restart: always
     ports:
-      - '53:53'
-      - '53:53/udp'
+      #- '53:53'
+      #- '53:53/udp'
       - '5553:5553'   # DNS over TLS
     volumes:
       - './config:/etc/coredns'

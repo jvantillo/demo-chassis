@@ -6,7 +6,7 @@ services:
     ports:
       - "80:80"         # Main HTTP port
       - "8080:8080"     # Web UI (api.insecure)
-      - "8089:8089"   # Metrics endpoint
+      #- "8089:8089"   # Metrics endpoint
     volumes:
       - ./config/:/etc/traefik/
       # So that Traefik can listen to the Docker events
