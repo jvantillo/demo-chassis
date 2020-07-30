@@ -8,7 +8,7 @@ WORKDIR /src
 COPY ["../JP.Demo.Chassis.TransactionService/JP.Demo.Chassis.TransactionService.csproj", "../JP.Demo.Chassis.TransactionService/"]
 RUN dotnet restore "../JP.Demo.Chassis.TransactionService/JP.Demo.Chassis.TransactionService.csproj"
 COPY . .
-WORKDIR "/src/../JP.Demo.Chassis.TransactionService"
+WORKDIR "/src/src/JP.Demo.Chassis.TransactionService"
 RUN dotnet build "JP.Demo.Chassis.TransactionService.csproj" -c Release -o /app/build
 
 FROM build AS publish
